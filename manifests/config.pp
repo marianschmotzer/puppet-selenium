@@ -37,25 +37,38 @@ define selenium::config(
     0       => "-jar ${selenium_jar_file}",
     default => inline_template("-cp ${selenium_jar_file}:<%= @classpath.join(':') %> org.openqa.grid.selenium.GridLauncher")
   }
-
-  file { $prog:
-    ensure  => 'file',
-    path    => "/etc/init.d/${prog}",
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template("${module_name}/init.d/${selenium::params::service_template}"),
-  } ~>
+  if $selenium::params::systemd {
+    file { $prog:
+      path    => "/etc/systemd/system/${prog}.service",
+      ensure  => file,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template("${module_name}/systemd/selenium.erb"),
+      notify  => Service[$prog],
+    }
+  }else {
+    file { $prog:
+      ensure  => file,
+      path    => "/etc/init.d/${prog}",
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template("${module_name}/init.d/${selenium::params::service_template}"),
+    }
+  }
   service { $prog:
     ensure     => running,
     hasstatus  => true,
     hasrestart => true,
     enable     => true,
+    require    => File[$prog],
     provider   => $selenium::params::systemd ? {
       true     => 'systemd',
       false    => undef,
       default  => undef,
     }
   }
+
 
 }
