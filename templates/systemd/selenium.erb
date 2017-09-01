@@ -3,9 +3,9 @@ Description=Selenium Standalone Server
 After=network.target network-online.target
 
 [Service]
-ExecStart=/usr/bin/java -jar <%= @install_root %>/jars/<%= @jar_name %> $SELENIUM_SERVER_ARGS
+ExecStart=<%= @java %> -jar <%= @install_root %>/jars/<%= @jar_name %> <%= @options %> 
 KillMode=process
 User=<%= @user %>
-
+Environment=DISPLAY=<%= @display %>
 [Install]
 WantedBy=multi-user.target
